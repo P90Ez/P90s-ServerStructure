@@ -1,0 +1,88 @@
+services:
+# --- nginx --- #
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Configs/nginx/:/etc/nginx/:ro
+      - ${CertbotDir}/conf:/etc/letsencrypt
+    environment:
+      BASE_DOMAIN: ${BaseDomain}
+    networks:
+      - net-nextcloud
+      - net-host
+    depends_on:
+      - cloudflare-ddns
+
+# --- nextcloud --- #
+  nextcloud:
+    image: nextcloud
+    container_name: nextcloud
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${NextCloudDBPW}
+      POSTGRES_DB: "nextcloud"
+      POSTGRES_USER: "nextcloud"
+    expose:
+      - "80"
+    networks:
+      - net-nextcloud
+    volumes:
+      - ${NextCloudDir}:/var/www/html
+    depends_on:
+      - nextclouddb
+      - nginx
+
+  nextclouddb:
+    image: postgres
+    container_name: nextclouddb
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${NextCloudDBPW}
+      POSTGRES_DB: "nextcloud"
+      POSTGRES_USER: "nextcloud"
+    volumes:
+      - ${NextCloudDBDir}:/var/lib/postgresql
+    networks:
+      - net-nextcloud
+
+# --- Cloudflare DDNS --- #
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:1.15.1
+    container_name: cloudflare-ddns
+    network_mode: host
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [all]
+    security_opt: [no-new-privileges:true]
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CloudflareAPIToken}
+      - DOMAINS=${CloudflareDomains}
+
+# --- Certbot --- #
+  certbot:  
+    image: certbot/dns-cloudflare
+    container_name: certbot
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CloudflareAPIToken}
+    volumes:
+      - ${CertbotDir}/conf:/etc/letsencrypt
+      - ${CertbotDir}/logs:/var/log/letsencrypt
+      - ${CertbotIni}:/etc/certbot/cloudflare.ini:ro
+    entrypoint: > # create initial certificate and the try to renew every 12h
+      sh -c "certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/certbot/cloudflare.ini --non-interactive --agree-tos --no-eff-email --email ${CertbotEmail} -d ${BaseDomain} -d '*.${BaseDomain}' && false || while true; do certbot renew --dns-cloudflare --dns-cloudflare-propagation-seconds 30 && false || sleep 12h; done"
+    restart: unless-stopped
+    networks:
+     - net-host
+
+networks:
+  net-nextcloud:
+    driver: bridge
+    internal: true
+  net-host:
+    driver: bridge
