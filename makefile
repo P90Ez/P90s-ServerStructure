@@ -26,3 +26,6 @@ remove-env:
 
 #remove-data:
 #	rm $(WorkDir) -f
+
+monitor:
+	sh -c "while true; do clear && docker ps -a && sleep 2s; done"

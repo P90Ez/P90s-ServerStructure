@@ -1,0 +1,23 @@
+# this template is parsed to contain the actual domain before running
+
+http {	
+	ssl_certificate     /etc/letsencrypt/live/$BASE_DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$BASE_DOMAIN/privkey.pem;
+
+	# drop all traffic which do not match correct hostname
+	server {
+		listen 443 ssl;
+		server_name "";
+		return 444;
+	}
+
+	# nextcloud
+    server {
+		listen 443 ssl;
+        server_name nextcloud.$BASE_DOMAIN;
+
+        location / {
+            proxy_pass http://nextcloud:80;
+        }
+    }
+}

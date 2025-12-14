@@ -22,6 +22,8 @@ The setup requires a `.env` file, containing various variables used by Docker-Co
 WorkDir=./Containers
 BaseDomain=example.com
 
+NginxConfig=./Configs/nginx
+
 NextCloudDir=${WorkDir}/nextcloud
 NextCloudDBDir=${WorkDir}/nextclouddb
 NextCloudDBPW="StrongAndSecurePassword!"
