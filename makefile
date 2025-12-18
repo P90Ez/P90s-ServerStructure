@@ -16,6 +16,11 @@ clean: remove-certbotini
 
 create-certbotini:
 	mkdir -p $(CertbotDir)
+	chown root:root $(CertbotDir)
+	chmod 700 $(CertbotDir)
+	touch $(CertbotIni)
+	chown root:root $(CertbotIni)
+	chmod 600 $(CertbotIni)
 	@echo "dns_cloudflare_api_token = $(CloudflareAPIToken)" > $(CertbotIni)
 
 remove-certbotini:

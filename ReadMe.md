@@ -8,6 +8,7 @@ This repo contains all configs for recreating my server structure.
     - Certbot (for SSL certificates)
     - Cloudflare DDNS (for updating DNS records with current ip)
     - Nextcloud
+    - Cron (Cron for Nextcloud)
     - PostgreSQL (DB for Nextcloud)
 
 *More services will be added over time.*
@@ -26,7 +27,7 @@ NginxConfig=./Configs/nginx
 
 NextCloudDir=${WorkDir}/nextcloud
 NextCloudDBDir=${WorkDir}/nextclouddb
-NextCloudDBPW="StrongAndSecurePassword!"
+NextCloudDBPW=StrongAndSecurePassword!
 
 CloudflareAPIToken=123UseYourOwnApiToken321
 CloudflareDomains=nextcloud.${BaseDomain},youCanAddMore.${BaseDomain}

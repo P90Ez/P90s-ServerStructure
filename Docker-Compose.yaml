@@ -5,7 +5,6 @@ services:
     container_name: nginx
     restart: unless-stopped
     ports:
-      - "80:80"
       - "443:443"
     volumes:
     # main config wrapper
@@ -31,15 +30,37 @@ services:
       POSTGRES_PASSWORD: ${NextCloudDBPW}
       POSTGRES_DB: "nextcloud"
       POSTGRES_USER: "nextcloud"
+      POSTGRESQL_HOST: nextclouddb
+      PHP_MEMORY_LIMIT: 1G
+      PHP_UPLOAD_LIMIT: 16G
     expose:
       - "80"
     networks:
       - net-nextcloud
+      - net-nextcloud-intern
     volumes:
       - ${NextCloudDir}:/var/www/html
     depends_on:
+      - nextcloud-cron
       - nextclouddb
       - nginx
+
+  nextcloud-cron:
+    image: nextcloud
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${NextCloudDBPW}
+      POSTGRES_DB: "nextcloud"
+      POSTGRES_USER: "nextcloud"
+      POSTGRESQL_HOST: nextclouddb
+    volumes:
+      - ${NextCloudDir}:/var/www/html
+    entrypoint: /cron.sh
+    networks:
+      - net-nextcloud-intern
+    depends_on:
+      - nextclouddb
 
   nextclouddb:
     image: postgres
@@ -52,7 +73,7 @@ services:
     volumes:
       - ${NextCloudDBDir}:/var/lib/postgresql
     networks:
-      - net-nextcloud
+      - net-nextcloud-intern
 
 # --- Cloudflare DDNS --- #
   cloudflare-ddns:
@@ -86,6 +107,9 @@ services:
 
 networks:
   net-nextcloud:
+    driver: bridge
+    internal: true
+  net-nextcloud-intern:
     driver: bridge
     internal: true
   net-host:
