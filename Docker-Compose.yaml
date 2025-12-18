@@ -39,6 +39,7 @@ services:
     networks:
       - net-nextcloud
       - net-nextcloud-intern
+      - net-host # requires an active internet connection for some tools
     volumes:
       - ${NextCloudDir}:/var/www/html
     depends_on:
