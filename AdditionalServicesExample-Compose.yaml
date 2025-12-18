@@ -1,0 +1,25 @@
+# There is currently no target in the provided makefile for this example. Use `docker compose -f AdditionalServicesExample-Compose.yaml up -d` instead.
+
+services:
+  AMinecraftServer:
+    image: itzg/minecraft-server
+    container_name: AnExampleMinecraftServer
+    stdin_open: true
+    tty: true
+    ports:
+      - "25565:25565" # if you are using this example, don't forget to adapt the nginx config to route traffic to this container!
+    volumes:
+      - ${WorkDir}/AMinecraftServer:/data
+    environment:
+      EULA: "TRUE"
+    restart: unless-stopped
+    networks:
+      - net-nginx-interconnect
+      - net-host # This container requires an internet connection to pull data
+  
+networks:
+  net-nginx-interconnect: #network to connect "external" to this nginx instance
+    external: true
+    name: nginx-interconnect
+  net-host:
+    driver: bridge
