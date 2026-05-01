@@ -1,0 +1,19 @@
+CRON_TAG = CLOUDFLARE_IP_UPDATER
+SCRIPT_PATH = $(CURDIR)/UpdateCloudflareIPs.sh
+CRON_SCHEDULE = 0 3 * * *
+
+run-once:
+	chmod +x $(SCRIPT_PATH)
+	$(SCRIPT_PATH)
+
+install:
+	chmod +x $(SCRIPT_PATH)
+	# removes old version if exists and install new cron job
+	@(crontab -l 2>/dev/null | grep -v "$(CRON_TAG)"; \
+	echo "$(CRON_SCHEDULE) $(SCRIPT_PATH) # $(CRON_TAG)") | crontab -
+
+remove:
+	@(crontab -l 2>/dev/null | grep -v "$(CRON_TAG)") | crontab -
+
+show:
+	@crontab -l | grep "$(CRON_TAG)" || echo "No cron job found."

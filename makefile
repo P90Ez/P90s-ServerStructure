@@ -1,15 +1,15 @@
 include .env
 export
 
-test-setup: build-containers
+test-setup: build-containers install-cf-ip-cron
 
-production: build-containers remove-certbotini remove-env
+production: build-containers install-cf-ip-cron remove-certbotini remove-env
 # additionally removes files containing credentials!
 
 build-containers: create-certbotini
 	docker compose -f Docker-Compose.yaml up -d
 
-clean: remove-certbotini
+clean: remove-cf-ip-cron remove-certbotini
 	docker compose -f Docker-Compose.yaml down -v
 
 # fullclean: clean remove-data remove-env
@@ -25,6 +25,13 @@ create-certbotini:
 
 remove-certbotini:
 	rm $(CertbotIni) -f
+
+install-cf-ip-cron:
+	$(MAKE) -f UpdateCloudflareIPs_Make run-once
+	$(MAKE) -f UpdateCloudflareIPs_Make install
+
+remove-cf-ip-cron:
+	$(MAKE) -f UpdateCloudflareIPs_Make remove
 
 remove-env:
 	rm ./.env -f
